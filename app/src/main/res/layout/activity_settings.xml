@@ -96,6 +96,12 @@
                 android:layout_height="wrap_content"
                 android:padding="16dp"/>
 
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginStart="16dp"
+                android:background="@color/divider" />
+
             <!-- Logging title-->
             <TextView
                 android:text="@string/logging"
@@ -122,10 +128,11 @@
                 android:text="@string/logging_description"
                 android:paddingStart="16dp"
                 android:paddingEnd="16dp"
+                android:paddingTop="1dp"
                 android:paddingBottom="16dp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="16sp"
+                android:textSize="13sp"
                 android:textColor="@color/secondaryText" />
 
             <View
@@ -159,6 +166,115 @@
                     android:textSize="16sp"
                     android:textColor="@color/secondaryText"
                     tools:text="http://example.com/logging"
+                    />
+            </LinearLayout>
+
+            <!-- REAL DISTANCE -->
+            <LinearLayout
+                android:id="@+id/logging_real_distance_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:clickable="true"
+                android:background="?attr/selectableItemBackground">
+
+                <TextView
+                    android:id="@+id/logging_real_distance_title"
+                    android:text="@string/logging_real_distance"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="16sp"
+                    android:textColor="@color/primaryText" />
+
+                <TextView
+                    android:id="@+id/logging_real_distance"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="16sp"
+                    android:textColor="@color/secondaryText"
+                    tools:text="unknown" />
+
+                <TextView
+                    android:id="@+id/logging_real_distance_description"
+                    android:text="@string/logging_real_distance_description"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:paddingTop="1dp"
+                    android:paddingBottom="16dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="13sp"
+                    android:textColor="@color/secondaryText" />
+
+            </LinearLayout>
+
+
+            <!-- Logging point -->
+            <LinearLayout
+                android:id="@+id/logging_point_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:clickable="true"
+                android:background="?attr/selectableItemBackground">
+
+                <TextView
+                    android:id="@+id/logging_point_title"
+                    android:text="@string/logging_point"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="16sp"
+                    android:textColor="@color/primaryText" />
+
+                <TextView
+                    android:id="@+id/logging_point"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="16sp"
+                    android:textColor="@color/secondaryText"
+                    tools:text="unknown" />
+
+                <TextView
+                    android:id="@+id/logging_point_description"
+                    android:text="@string/logging_point_description"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:paddingTop="1dp"
+                    android:paddingBottom="16dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="13sp"
+                    android:textColor="@color/secondaryText" />
+
+            </LinearLayout>
+
+            <!-- Logging frequency -->
+            <LinearLayout
+                android:id="@+id/logging_frequency_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:clickable="true"
+                android:background="?attr/selectableItemBackground">
+
+                <TextView
+                    android:id="@+id/logging_frequency_title"
+                    android:text="@string/logging_frequency"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="16sp"
+                    android:textColor="@color/primaryText" />
+
+                <TextView
+                    android:id="@+id/logging_frequency"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="16sp"
+                    android:textColor="@color/secondaryText"
+                    tools:text="Every scan"
                     />
             </LinearLayout>
 
@@ -196,39 +312,15 @@
                     />
             </LinearLayout>
 
+
+
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
                 android:layout_marginStart="16dp"
                 android:background="@color/divider" />
 
-            <!-- Logging frequency -->
-            <LinearLayout
-                android:id="@+id/logging_frequency_container"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="16dp"
-                android:clickable="true"
-                android:background="?attr/selectableItemBackground">
 
-                <TextView
-                    android:id="@+id/logging_frequency_title"
-                    android:text="@string/logging_frequency"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textSize="16sp"
-                    android:textColor="@color/primaryText" />
-
-                <TextView
-                    android:id="@+id/logging_frequency"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textSize="16sp"
-                    android:textColor="@color/secondaryText"
-                    tools:text="Every scan"
-                    />
-            </LinearLayout>
 
             <!-- Blacklist title-->
             <TextView
@@ -369,13 +461,13 @@
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintLeft_toLeftOf="parent"
-                    app:srcCompat="@drawable/ic_code_black_24dp"
+                    app:srcCompat="@drawable/ic_feedback_black_24dp"
                     android:tint="@color/colorAccent"
                     />
 
                 <TextView
                     android:id="@+id/feedback_title"
-                    android:text="@string/open_source"
+                    android:text="@string/feature_request"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     app:layout_constraintLeft_toRightOf="@+id/feedback_icon"
@@ -386,12 +478,11 @@
                     />
 
                 <TextView
-                    android:text="@string/open_source_descr"
+                    android:text="@string/ask_for_a_feature"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     app:layout_constraintTop_toBottomOf="@+id/feedback_title"
                     app:layout_constraintLeft_toLeftOf="@id/feedback_title"
-                    app:layout_constraintRight_toRightOf="parent"
                     android:textSize="16sp"
                     android:textColor="@color/secondaryText"
                     />

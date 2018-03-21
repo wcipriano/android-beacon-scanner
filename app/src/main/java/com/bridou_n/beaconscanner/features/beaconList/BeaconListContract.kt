@@ -25,8 +25,10 @@ interface BeaconListContract {
         fun showScanningState(state: Boolean)
 
         fun hasCoarseLocationPermission() : Boolean
+        fun hasWritePermission() : Boolean
         fun hasSomePermissionPermanentlyDenied(perms: List<String>) : Boolean
         fun askForCoarseLocationPermission()
+        fun askForWritePermission()
         fun showEnablePermissionSnackbar()
 
         fun showRating(step: Int, show: Boolean = true)
@@ -44,7 +46,9 @@ interface BeaconListContract {
 
         fun onBeaconServiceConnect()
         fun onLocationPermissionGranted()
+        fun onWritePermissionGranted()
         fun onLocationPermissionDenied(requestCode: Int, permList: List<String>)
+        fun onWritePermissionDenied(requestCode: Int, permList: List<String>)
 
         fun toggleScan()
         fun startScan()

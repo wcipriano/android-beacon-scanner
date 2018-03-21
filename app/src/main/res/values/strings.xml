@@ -88,6 +88,12 @@
     <string name="see_the_blocked_beacons">See the blocked beacons</string>
     <string name="no_blocked_beacons">No beacon has been blocked yet!</string>
     <string name="unblock">Unblock</string>
-    <string name="open_source">Open source</string>
-    <string name="open_source_descr">This app is open source! Want to see how it works under the hood or customize it to fits your needs?</string>
+
+    <string name="logging_localdevice">Device local file log</string>
+    <string name="logging_real_distance">Distance Ref</string>
+    <string name="logging_real_distance_description">If you are calibrating the system, use this option to know the real distance between device and the beacon. Thus you can check and compare the accuracy of the measures.</string>
+
+    <string name="logging_point">Measure point</string>
+    <string name="logging_point_description">If you are getting training data, you can set here the point of the measures.</string>
+
 </resources>

@@ -1,8 +1,12 @@
 package com.bridou_n.beaconscanner.features.beaconList
 
+import android.os.Environment
+import android.os.Environment.getExternalStoragePublicDirectory
 import android.os.RemoteException
+import android.provider.Settings.Global.getString
 import android.util.Log
 import com.bridou_n.beaconscanner.API.LoggingService
+import com.bridou_n.beaconscanner.R
 import com.bridou_n.beaconscanner.events.Events
 import com.bridou_n.beaconscanner.events.RxBus
 import com.bridou_n.beaconscanner.models.BeaconSaved
@@ -24,6 +28,11 @@ import io.realm.Sort
 import org.altbeacon.beacon.Beacon
 import org.altbeacon.beacon.BeaconManager
 import org.altbeacon.beacon.Region
+import java.io.File
+import java.text.SimpleDateFormat
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.util.Date
 import java.util.*
 import java.util.concurrent.TimeUnit
 
@@ -80,10 +89,10 @@ class BeaconListPresenter(val view: BeaconListContract.View,
             }
         }
 
-        // Show the tutorial if needed
-        if (!prefs.hasSeenTutorial()) {
-            prefs.setHasSeenTutorial(view.showTutorial())
-        }
+//        // Show the tutorial if needed
+//        if (!prefs.hasSeenTutorial()) {
+//            prefs.setHasSeenTutorial(view.showTutorial())
+//        }
 
         // Start scanning if the scan on open is activated or if we were previously scanning
         if (prefs.isScanOnOpen || prefs.wasScanning()) {
@@ -104,6 +113,9 @@ class BeaconListPresenter(val view: BeaconListContract.View,
         if (!view.hasCoarseLocationPermission()) {
             return view.askForCoarseLocationPermission()
         }
+        if (!view.hasWritePermission()) {
+            return view.askForWritePermission()
+        }
 
         if (!bluetoothState.isEnabled || beaconManager == null) {
             return view.showBluetoothNotEnabledError()
@@ -121,7 +133,9 @@ class BeaconListPresenter(val view: BeaconListContract.View,
         view.showScanningState(true)
         rangeDisposable?.dispose() // clear the previous subscription if any
         rangeDisposable = rxBus.asFlowable() // Listen for range events
-                .observeOn(AndroidSchedulers.mainThread()) // We use this so we use the realm on the good thread & we can make UI changes
+                // We use this so we use the realm on the good thread & we can make UI
+                .observeOn(AndroidSchedulers.mainThread())
+
                 .filter({ e -> e is Events.RangeBeacon && e.beacons.isNotEmpty() })
                 .subscribe({ e ->
                     e as Events.RangeBeacon
@@ -146,20 +160,33 @@ class BeaconListPresenter(val view: BeaconListContract.View,
     }
 
     override fun onLocationPermissionGranted() {
-        tracker.logEvent("permission_granted", null)
+        tracker.logEvent("location_permission_granted", null)
         startScan()
     }
+    override fun onWritePermissionGranted() {
+        tracker.logEvent("write_permission_granted", null)
+    }
+
 
     override fun onLocationPermissionDenied(requestCode: Int, permList: List<String>) {
-        tracker.logEvent("permission_denied")
+        tracker.logEvent("Location permission_denied")
 
         // If the user refused the permission, we just disabled the scan on open
         prefs.isScanOnOpen = false
         if (view.hasSomePermissionPermanentlyDenied(permList)) {
-            tracker.logEvent("permission_denied_permanently")
+            tracker.logEvent("location permission_denied_permanently")
             view.showEnablePermissionSnackbar()
         }
     }
+
+    override fun onWritePermissionDenied(requestCode: Int, permList: List<String>) {
+        tracker.logEvent("Write permission_denied")
+//        if (view.hasSomePermissionPermanentlyDenied(permList)) {
+//            tracker.logEvent("Write permission_denied_permanently")
+//            view.showEnablePermissionSnackbar()
+//        }
+    }
+
 
     fun handleRating() {
         if (ratingHelper.shouldShowRatingRationale()) {
@@ -197,6 +224,8 @@ class BeaconListPresenter(val view: BeaconListContract.View,
 
                 tRealm.copyToRealmOrUpdate(beacon)
                 tracker.logBeaconScanned(beacon.manufacturer, beacon.beaconType, beacon.distance)
+
+                //beacon.toCvs()
             }
         }, null, { error: Throwable? ->
             view.showGenericError(error?.message ?: "")
@@ -204,7 +233,7 @@ class BeaconListPresenter(val view: BeaconListContract.View,
     }
 
     fun logToWebhookIfNeeded() {
-        if (prefs.isLoggingEnabled && prefs.loggingEndpoint != null &&
+        if (prefs.isLoggingEnabled &&
                 ++numberOfScansSinceLog >= prefs.getLoggingFrequency()) {
             val beaconToLog = realm.getBeaconsScannedAfter(prefs.lasLoggingCall)
 
@@ -214,37 +243,78 @@ class BeaconListPresenter(val view: BeaconListContract.View,
                     Log.d(TAG, "Result is loaded size : ${results.size} - lastLoggingCall : ${Date(prefs.lasLoggingCall)}")
 
                     // Execute the network request
-                    prefs.lasLoggingCall = Date().time
+                    prefs.lasLoggingCall = Date().time;
 
-                    // We clone the objects
-                    val resultPlainObjects = results.map { it.clone() }
-                    val req = LoggingRequest(prefs.loggingDeviceName ?: "", resultPlainObjects)
+                    //Log hhtp json
+                    if((prefs.loggingEndpoint != null) and (prefs.loggingEndpoint != "Device local file log")){
+                        // We clone the objects
+                        val resultPlainObjects = results.map { it.clone() }
+                        val req = LoggingRequest(prefs.loggingDeviceName ?: "", resultPlainObjects)
 
-                    loggingRequests.add(loggingService.postLogs(prefs.loggingEndpoint ?: "", req)
-                            .retryWhen({ errors: Flowable<Throwable> ->
-                                errors.zipWith(Flowable.range(1, MAX_RETRIES + 1), BiFunction { _: Throwable, attempt: Int ->
-                                    Log.d(TAG, "attempt : $attempt")
-                                    if (attempt > MAX_RETRIES) {
-                                        view.showLoggingError()
+                        loggingRequests.add(loggingService.postLogs(prefs.loggingEndpoint
+                                ?: "", req)
+                                .retryWhen({ errors: Flowable<Throwable> ->
+                                    errors.zipWith(Flowable.range(1, MAX_RETRIES + 1), BiFunction { _: Throwable, attempt: Int ->
+                                        Log.d(TAG, "attempt : $attempt")
+                                        if (attempt > MAX_RETRIES) {
+                                            view.showLoggingError()
+                                        }
+                                        attempt
+                                    }).flatMap { attempt ->
+                                        if (attempt > MAX_RETRIES) {
+                                            Flowable.empty()
+                                        } else {
+                                            Flowable.timer(Math.pow(4.0, attempt.toDouble()).toLong(), TimeUnit.SECONDS)
+                                        }
                                     }
-                                    attempt
-                                }).flatMap { attempt ->
-                                    if (attempt > MAX_RETRIES) {
-                                        Flowable.empty()
-                                    } else {
-                                        Flowable.timer(Math.pow(4.0, attempt.toDouble()).toLong(), TimeUnit.SECONDS)
-                                    }
-                                }
-                            })
-                            .subscribeOn(Schedulers.io())
-                            .observeOn(AndroidSchedulers.mainThread())
-                            .subscribe())
+                                })
+                                .subscribeOn(Schedulers.io())
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .subscribe())
+                    // Device local file log
+                    } else {
+                        //   Trocamos o log via http request json para o log via arq text no proprio device
+                        writeLogCvs(results);
+                    }
 
                     beaconToLog.removeAllChangeListeners()
                 }
             }
         }
     }
+
+    fun writeLogCvs(beacons: RealmResults<BeaconSaved>) {
+        var dir = getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+        val file_dir = File(dir, "rssi_data")
+        var success = true
+        if (!file_dir.exists()) {
+            success = file_dir.mkdir()
+        }
+        //get current date to File name
+        //https://stackoverflow.com/questions/5683728/convert-java-util-date-to-string
+        var df = SimpleDateFormat("yyyy-MM-dd");
+        // Get the date today using Calendar object.
+        var today = Calendar.getInstance().getTime();
+        // Using DateFormat format method we can create a string
+        // representation of a date with the defined format.
+        var date_formatted = df.format(today);
+
+        if(success) {
+            var file = File(file_dir, "/rssi_" + date_formatted + ".csv")
+            var text = "";
+            if(!file.exists()) {
+                text += "Time;Reader;BeaconAddress;BeaconType;RSSI;Distance;DistanceRef;PointRef\n"
+            }
+            for (beacon in beacons) {
+                var textaux = beacon.toCvs()
+                textaux += prefs.getLoggingRealDistance() + ";" // + prefs.loggingDeviceName + ";"
+                textaux += prefs.getLoggingPoint().toString() + "\n"
+                text += textaux
+            }
+            file.appendText(text)
+        }
+    }
+
 
     override fun stopScan() {
         unbindBeaconManager()

@@ -57,8 +57,12 @@ class BeaconListActivity : AppCompatActivity(), BeaconListContract.View, BeaconC
     companion object {
         val TAG = "MAIN_ACTIVITY"
         val coarseLocationPermission = arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION)
+        val writePermission = arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+
         val RC_COARSE_LOCATION = 1
         val RC_SETTINGS_SCREEN = 2
+        val RC_WRITE = 3
+
     }
 
     enum class BluetoothState(val bgColor: Int, val text: Int) {
@@ -189,8 +193,15 @@ class BeaconListActivity : AppCompatActivity(), BeaconListContract.View, BeaconC
         }
     }
 
+
+
+
+
+
     /* Permissions methods */
     override fun hasCoarseLocationPermission() = EasyPermissions.hasPermissions(this, *coarseLocationPermission)
+    override fun hasWritePermission() = EasyPermissions.hasPermissions(this, *writePermission)
+
 
     override fun hasSomePermissionPermanentlyDenied(perms: List<String>) = EasyPermissions.somePermissionPermanentlyDenied(this, perms)
 
@@ -198,11 +209,17 @@ class BeaconListActivity : AppCompatActivity(), BeaconListContract.View, BeaconC
         if (requestCode == RC_COARSE_LOCATION) {
             presenter.onLocationPermissionGranted()
         }
+        if (requestCode == RC_WRITE) {
+            presenter.onWritePermissionGranted()
+        }
     }
 
     override fun onPermissionsDenied(requestCode: Int, permList: List<String>) {
         if (requestCode == RC_COARSE_LOCATION) {
             presenter.onLocationPermissionDenied(requestCode, permList)
+        }
+        if (requestCode == RC_WRITE) {
+            presenter.onWritePermissionDenied(requestCode, permList)
         }
     }
 
@@ -217,6 +234,8 @@ class BeaconListActivity : AppCompatActivity(), BeaconListContract.View, BeaconC
     }
 
     override fun askForCoarseLocationPermission() = ActivityCompat.requestPermissions(this, coarseLocationPermission, RC_COARSE_LOCATION)
+    override fun askForWritePermission() = ActivityCompat.requestPermissions(this, writePermission, RC_WRITE)
+
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
@@ -224,6 +243,9 @@ class BeaconListActivity : AppCompatActivity(), BeaconListContract.View, BeaconC
     }
 
     /* ==== end of permission methods ==== */
+
+
+
 
     @OnClick(R.id.scan_fab)
     fun toggleScan() = presenter.toggleScan()
@@ -243,7 +265,12 @@ class BeaconListActivity : AppCompatActivity(), BeaconListContract.View, BeaconC
     override fun showLoggingError() = Snackbar.make(rootView, getString(R.string.logging_error_please_check), Snackbar.LENGTH_LONG).show()
 
     override fun showScanningState(state: Boolean) {
-        toolbar.title = getString(if (state) R.string.scanning_for_beacons else R.string.app_name)
+        var title = getString(if (state) R.string.scanning_for_beacons else R.string.app_name)
+        var rdistance = prefs.getLoggingRealDistanceName()
+        if(rdistance != "unknown"){
+            title = title + " (" + rdistance + ")"
+        }
+        toolbar.title = title;
         progressOne.visibility = if (state) View.VISIBLE else View.GONE
         progressTwo.visibility = if (state) View.VISIBLE else View.GONE
 

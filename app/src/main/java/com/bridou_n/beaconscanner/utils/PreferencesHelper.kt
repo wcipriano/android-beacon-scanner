@@ -22,6 +22,8 @@ class PreferencesHelper(ctx: Context) {
         private val LOGGING_ENDPOINT_KEY = "loggingEndpoint"
         private val LOGGING_DEVICE_NAME_KEY = "loggingDeviceName"
         private val LOGGING_FREQUENCY = "loggingFrequency"
+        private val LOGGING_REAL_DISTANCE = "loggingRealDistance"
+        private val LOGGING_POINT = "loggingPoint"
         private val LAST_LOGGING_CALL = "lastLoggingCall"
     }
 
@@ -86,8 +88,14 @@ class PreferencesHelper(ctx: Context) {
         set(name) = prefs.edit().putString(LOGGING_DEVICE_NAME_KEY, name).apply()
 
     fun setLoggingFrequencyIdx(delayIdx: Int) = prefs.edit().putInt(LOGGING_FREQUENCY, delayIdx).apply()
-
     fun getLoggingFrequencyIdx() = prefs.getInt(LOGGING_FREQUENCY, 0)
+
+    fun setLoggingRealDistanceIdx(delayIdx: Int) = prefs.edit().putInt(LOGGING_REAL_DISTANCE, delayIdx).apply()
+    fun getLoggingRealDistanceIdx() = prefs.getInt(LOGGING_REAL_DISTANCE, 0)
+
+    fun setLoggingPointIdx(delayIdx: Int) = prefs.edit().putInt(LOGGING_POINT, delayIdx).apply()
+    fun getLoggingPointIdx() = prefs.getInt(LOGGING_POINT, 0)
+
 
     /**
      * Get the number of scans to do before firing a logging request
@@ -95,7 +103,6 @@ class PreferencesHelper(ctx: Context) {
     fun getLoggingFrequency() : Int {
         val idx = getLoggingFrequencyIdx()
         val scansDelays = ressources.getIntArray(R.array.logging_frequencies)
-
         if (idx < scansDelays.size) {
             return scansDelays[idx]
         }
@@ -105,12 +112,57 @@ class PreferencesHelper(ctx: Context) {
     fun getLoggingFrequencyName() : String {
         val idx = getLoggingFrequencyIdx()
         val loggingFrequencies = ressources.getStringArray(R.array.logging_frequencies_names)
-
         if (idx < loggingFrequencies.size) {
             return loggingFrequencies[idx]
         }
         return loggingFrequencies[0]
     }
+
+
+    /**
+     * Get the the real distance
+     */
+    fun getLoggingRealDistance() : String {
+        val idx = getLoggingRealDistanceIdx()
+        val realDistances = ressources.getStringArray(R.array.logging_realdistance)
+        if (idx < realDistances.size) {
+            return realDistances[idx]
+        } else {
+            return ""
+        }
+    }
+
+    fun getLoggingRealDistanceName() : String {
+        val idx = getLoggingRealDistanceIdx()
+        val realDistances = ressources.getStringArray(R.array.logging_realdistance_names)
+        if (idx < realDistances.size) {
+            return realDistances[idx]
+        }
+        return realDistances[0]
+    }
+
+    /**
+     * Get the the point label
+     */
+    fun getLoggingPoint() : Int {
+        val idx = getLoggingPointIdx()
+        val points = ressources.getIntArray(R.array.logging_points)
+        if (idx < points.size) {
+            return points[idx]
+        } else {
+            return 0
+        }
+    }
+
+    fun getLoggingPointName() : String {
+        val idx = getLoggingPointIdx()
+        val realDistances = ressources.getStringArray(R.array.logging_points_names)
+        if (idx < realDistances.size) {
+            return realDistances[idx]
+        }
+        return realDistances[0]
+    }
+
 
     var lasLoggingCall: Long
         get() = prefs.getLong(LAST_LOGGING_CALL, 0)

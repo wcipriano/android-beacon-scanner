@@ -39,4 +39,132 @@
         <item>60</item>
     </integer-array>
     <!-- / Logging frequency -->
+
+    <!-- Logging real distance -->
+    <string-array name="logging_realdistance_names">
+        <item>unknown</item>
+        <item>0.25m</item>
+        <item>0.50m</item>
+        <item>1m</item>
+        <item>2m</item>
+        <item>3m</item>
+        <item>4m</item>
+        <item>5m</item>
+        <item>6m</item>
+        <item>7m</item>
+        <item>8m</item>
+        <item>9m</item>
+        <item>10m</item>
+        <item>12m</item>
+        <item>14m</item>
+        <item>16m</item>
+        <item>18m</item>
+        <item>20m</item>
+        <item>25m</item>
+        <item>30m</item>
+        <item>35m</item>
+        <item>40m</item>
+        <item>45m</item>
+        <item>50m</item>
+    </string-array>
+
+    <string-array name="logging_realdistance">
+        <item></item>
+        <item>0.25</item>
+        <item>0.50</item>
+        <item>1.0</item>
+        <item>2.0</item>
+        <item>3.0</item>
+        <item>4.0</item>
+        <item>5.0</item>
+        <item>6.0</item>
+        <item>7.0</item>
+        <item>8.0</item>
+        <item>9.0</item>
+        <item>10.0</item>
+        <item>12.0</item>
+        <item>14.0</item>
+        <item>16.0</item>
+        <item>18.0</item>
+        <item>20.0</item>
+        <item>25.0</item>
+        <item>30.0</item>
+        <item>35.0</item>
+        <item>40.0</item>
+        <item>45.0</item>
+        <item>50.0</item>
+    </string-array>
+    <!-- / Logging real distance  -->
+
+
+    <!-- Logging point -->
+    <string-array name="logging_points_names">
+        <item>unknown</item>
+        <item>P01</item>
+        <item>P02</item>
+        <item>P03</item>
+        <item>P04</item>
+        <item>P05</item>
+        <item>P06</item>
+        <item>P07</item>
+        <item>P08</item>
+        <item>P09</item>
+        <item>P10</item>
+        <item>P11</item>
+        <item>P12</item>
+        <item>P13</item>
+        <item>P14</item>
+        <item>P15</item>
+        <item>P16</item>
+        <item>P17</item>
+        <item>P18</item>
+        <item>P19</item>
+        <item>P20</item>
+        <item>P21</item>
+        <item>P22</item>
+        <item>P23</item>
+        <item>P24</item>
+        <item>P25</item>
+        <item>P26</item>
+        <item>P27</item>
+        <item>P28</item>
+        <item>P29</item>
+        <item>P30</item>
+    </string-array>
+
+    <integer-array name="logging_points">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
+        <item>7</item>
+        <item>8</item>
+        <item>9</item>
+        <item>10</item>
+        <item>11</item>
+        <item>12</item>
+        <item>13</item>
+        <item>14</item>
+        <item>15</item>
+        <item>16</item>
+        <item>17</item>
+        <item>18</item>
+        <item>19</item>
+        <item>20</item>
+        <item>21</item>
+        <item>22</item>
+        <item>23</item>
+        <item>24</item>
+        <item>25</item>
+        <item>26</item>
+        <item>27</item>
+        <item>28</item>
+        <item>29</item>
+        <item>30</item>
+    </integer-array>
+    <!-- / Logging frequency -->
+
 </resources>

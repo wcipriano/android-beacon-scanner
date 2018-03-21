@@ -8,64 +8,63 @@ android {
     signingConfigs {
         release {
             keyAlias 'BeaconScannerKey'
-            keyPassword beacon_scanner_key_password
-            storeFile file(beacon_scanner_store_file)
-            storePassword beacon_scanner_store_password
+            keyPassword 'beacon_scanner_key_password'
+            storeFile file('beacon_scanner_store_file')
+            storePassword 'beacon_scanner_store_password'
         }
     }
-
-    compileSdkVersion 27
-    buildToolsVersion '27.0.2'
+    compileSdkVersion 26
+    buildToolsVersion '26.0.2'
     defaultConfig {
         applicationId "com.bridou_n.beaconscanner"
         minSdkVersion 18
-        targetSdkVersion 27
-        versionCode 16
-        versionName "2.1.2"
+        targetSdkVersion 26
+        versionCode 14
+        versionName "2.1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
+        versionNameSuffix 'w'
     }
     buildTypes {
         release {
             minifyEnabled true
-            buildConfigField "String", "CONTACT_EMAIL", "\"nicobr65@gmail.com\""
-            resValue "string", "app_name", "Beacon Scanner"
+            buildConfigField "String", "CONTACT_EMAIL", "\"wagnao@gmail.com\""
+            resValue "string", "app_name", "BS Wcs r"
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.release
         }
-
         preRelease {
             minifyEnabled true
             applicationIdSuffix = ".preRelease"
             versionNameSuffix = "-preRelease"
-            buildConfigField "String", "CONTACT_EMAIL", "\"nicobr65@gmail.com\""
-            resValue "string", "app_name", "Beacon Scanner"
+            buildConfigField "String", "CONTACT_EMAIL", "\"wagnao@gmail.com\""
+            resValue "string", "app_name", "BS Wcs pr"
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.release
         }
-
         debug {
             minifyEnabled false
             applicationIdSuffix = ".debug"
             versionNameSuffix = "-debug"
-            buildConfigField "String", "CONTACT_EMAIL", "\"nicobr65@gmail.com\""
-            resValue "string", "app_name", "BS debug"
+            buildConfigField "String", "CONTACT_EMAIL", "\"wagnao@gmail.com\""
+            resValue "string", "app_name", "BS Wcs db"
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
-
     configurations.all {
         resolutionStrategy.force 'com.google.code.findbugs:jsr305:3.0.2'
+    }
+    productFlavors {
     }
 }
 
 ext {
-    supportLibraryVersion = '27.0.2'
-    firebaseVersion = '11.6.2'
+    supportLibraryVersion = '26.0.1'
+    firebaseVersion = '11.4.2'
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile fileTree(include: ['*.jar'], dir: 'libs')
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
@@ -75,55 +74,42 @@ dependencies {
     compile "com.android.support:appcompat-v7:${supportLibraryVersion}"
     compile "com.android.support:recyclerview-v7:${supportLibraryVersion}"
     compile "com.android.support:cardview-v7:${supportLibraryVersion}"
-
     // Kotlin
     compile "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
-
     // ButterKnife
     compile 'com.jakewharton:butterknife:8.8.1'
     kapt 'com.jakewharton:butterknife-compiler:8.8.1'
-
     // Dagger 2
     compile 'com.google.dagger:dagger:2.11'
     kapt 'com.google.dagger:dagger-compiler:2.11'
-
     // RxJava & RxAndroid
     compile 'io.reactivex.rxjava2:rxjava:2.1.2'
     compile 'io.reactivex.rxjava2:rxandroid:2.0.1'
     compile 'com.jakewharton.rxrelay2:rxrelay:2.0.0'
-
     // Retrofit & RxJava call adapters & Gson
     compile 'com.squareup.retrofit2:retrofit:2.3.0'
     compile 'com.squareup.retrofit2:adapter-rxjava2:2.3.0'
     compile 'com.squareup.okhttp3:logging-interceptor:3.8.0'
-
     compile 'com.google.code.gson:gson:2.8.1'
     compile 'com.squareup.retrofit2:converter-gson:2.3.0'
-
     // Realm adapters
     compile 'io.realm:android-adapters:2.1.0'
-
     // ALT Beacon library
     compile 'org.altbeacon:android-beacon-library:2.12.1'
-
     // Easy permissions
     compile 'pub.devrel:easypermissions:0.4.3'
-
     // Tap target view, discovery feature
     compile 'com.getkeepsafe.taptargetview:taptargetview:1.10.0'
-
     // Constraint Layout
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
-
     // Material dialog
     compile 'com.afollestad.material-dialogs:core:0.9.4.5'
-
     // Firebase Analytics & Crash reporting
     compile "com.google.firebase:firebase-core:${firebaseVersion}"
     compile "com.google.firebase:firebase-crash:${firebaseVersion}"
 }
 
-apply plugin: 'com.google.gms.google-services'
-repositories {
-    mavenCentral()
-}
+//apply plugin: 'com.google.gms.google-services'
+//repositories {
+//    mavenCentral()
+//}

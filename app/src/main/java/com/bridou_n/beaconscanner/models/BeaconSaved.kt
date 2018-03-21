@@ -1,16 +1,28 @@
 package com.bridou_n.beaconscanner.models
 
+import android.R
+import android.os.Build
+import android.os.Environment
 import android.os.Parcel
 import android.os.Parcelable
+import com.bridou_n.beaconscanner.utils.PreferencesHelper
 import com.bridou_n.beaconscanner.utils.RuuviParser
-import com.google.gson.GsonBuilder
 import com.google.gson.annotations.SerializedName
+import java.util.Date
+
 import io.realm.RealmObject
 import io.realm.annotations.Ignore
 import io.realm.annotations.PrimaryKey
 import org.altbeacon.beacon.Beacon
 import org.altbeacon.beacon.utils.UrlBeaconUrlCompressor
-import java.util.*
+import java.io.File
+import java.math.BigDecimal
+import java.text.SimpleDateFormat
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import kotlin.concurrent.timer
+import kotlin.math.round
+import kotlin.math.roundToLong
 
 /**
  * Created by bridou_n on 30/09/2016.
@@ -27,6 +39,7 @@ open class BeaconSaved() : RealmObject(), Parcelable {
     @SerializedName("rssi") var rssi: Int = 0
     @SerializedName("distance") var distance: Double = 0.toDouble()
     @SerializedName("lastSeen") var lastSeen: Long = 0
+    @SerializedName("dateRead") var dateRead: String ? = null // yyyy-MM-dd HH:mm:ss.SSS
     @SerializedName("lastMinuteSeen") var lastMinuteSeen: Long = 0
 
     /**
@@ -59,6 +72,15 @@ open class BeaconSaved() : RealmObject(), Parcelable {
         // Common fields to every beacons
         hashcode = beacon.hashCode()
         lastSeen = Date().time
+        //dateRead = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS")
+        //dateRead = LocalDateTime.now();
+        //dateRead = DateTimeFormatter.ofPattern("yyyy-MM-ddTHH:mm:ss.SSS").toString();
+        //dateRead = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").toString();
+        //dateRead = java.util.Calendar.getInstance().toString();
+        //var outputFormat = SimpleDateFormat("yyy-MM-dd'T'HH:mm:ss.SSS");
+        var outputFormat = SimpleDateFormat("HH:mm:ss.SSS");
+        dateRead = outputFormat.format(Date().time)  //Date().time
+
         lastMinuteSeen = Date().time / 1000 / 60
         beaconAddress = beacon.bluetoothAddress
         manufacturer = beacon.manufacturer
@@ -116,6 +138,7 @@ open class BeaconSaved() : RealmObject(), Parcelable {
         ret.rssi = rssi
         ret.distance = distance
         ret.lastSeen = lastSeen
+        ret.dateRead = dateRead
         ret.lastMinuteSeen = lastMinuteSeen
 
         ret.ibeaconData = ibeaconData?.clone()
@@ -123,8 +146,6 @@ open class BeaconSaved() : RealmObject(), Parcelable {
         ret.eddystoneUidData = eddystoneUidData?.clone()
         ret.telemetryData = telemetryData?.clone()
         ret.ruuviData = ruuviData?.clone()
-
-        ret.isBlocked = isBlocked
 
         return ret
     }
@@ -139,6 +160,7 @@ open class BeaconSaved() : RealmObject(), Parcelable {
         parcel.writeDouble(distance)
         parcel.writeLong(lastSeen)
         parcel.writeLong(lastMinuteSeen)
+        parcel.writeString(dateRead)
     }
 
     override fun describeContents(): Int {
@@ -161,7 +183,80 @@ open class BeaconSaved() : RealmObject(), Parcelable {
         }
     }
 
+    fun toCvs(): String {
+        var reader = "${Build.MODEL}"
+        //time; reader; uuid; major; minor; txPower; RSSI; distance; beaconAddress
+        //var str =  "#time; reader; beaconAddress; rssi; distance; \n" +
+        String().takeLast(3)
+
+        //Beacon address
+        val map: HashMap<String, String> = hashMapOf("C1:F5:F3:92:93:2F" to "2F",
+                                                     "F0:64:27:1A:1E:45" to "45",
+                                                     "D9:7A:00:C6:5C:4C" to "4C",
+                                                     "D5:86:4C:3B:DB:55" to "55",
+                                                     "D3:6C:52:4F:49:76" to "76",
+                                                     "DF:3F:A3:8F:5C:C1" to "C1")
+        var ba = map[beaconAddress]
+        var bt = beaconType.replace("eddystone_uid", "UUID")
+                           .replace("eddystone_url", "URL")
+                           .replace("ibeacon", "IB")
+                           .replace("altbeacon", "AB")
+        var d = BigDecimal(distance).setScale(2, BigDecimal.ROUND_HALF_UP).toDouble()
+        var str = "$dateRead;$reader;$ba;$bt;$rssi;$d;"
+        return str;
+    }
+
     override fun toString(): String {
-        return GsonBuilder().setPrettyPrinting().create().toJson(this.clone())
+        var str =  "{    \n" +
+                "         \"beaconAddress\":\"$beaconAddress\",\n" +
+                "         \"beaconType\":\"$beaconType\",\n" +
+                "         \"distance\":$distance,\n" +
+                "         \"hashcode\":$hashcode,\n" +
+                "         \"isBlocked\":$isBlocked,\n" +
+                "         \"lastMinuteSeen\":$lastMinuteSeen,\n" +
+                "         \"lastSeen\":$lastSeen,\n" +
+                "         \"manufacturer\":$manufacturer,\n" +
+                "         \"rssi\":$rssi,\n" +
+                "         \"txPower\":$txPower\n";
+
+        if (ibeaconData != null) {
+            str +=  "         \"ibeaconData\":{  \n" +
+                    "            \"uuid\":\"${ibeaconData?.uuid}\"\n" +
+                    "            \"major\":${ibeaconData?.major},\n" +
+                    "            \"minor\":${ibeaconData?.minor},\n" +
+                    "         },\n"
+        }
+
+        if (eddystoneUrlData != null) {
+            str +=  "         \"eddystoneUrlData\":{  \n" +
+                    "            \"url\":\"${eddystoneUrlData?.url}\"\n" +
+                    "         },\n"
+        }
+
+        if (eddystoneUidData != null) {
+            str +=  "         \"eddystoneUidData\":{  \n" +
+                    "            \"namespaceId\":\"${eddystoneUidData?.namespaceId}\"\n" +
+                    "            \"instanceId\":${eddystoneUidData?.instanceId},\n" +
+                    "         },\n"
+        }
+
+        if (telemetryData != null) {
+            str +=  "         \"telemetryData\":{  \n" +
+                    "            \"batteryMilliVolts\":${telemetryData?.batteryMilliVolts},\n" +
+                    "            \"pduCount\":${telemetryData?.pduCount},\n" +
+                    "            \"temperature\":${telemetryData?.temperature},\n" +
+                    "            \"uptimeSeconds\":${telemetryData?.uptime},\n" +
+                    "            \"version\":${telemetryData?.version}\n" +
+                    "         },\n"
+        }
+
+        if (ruuviData != null) {
+            str +=  "         \"ruuviData\":{  \n" +
+                    "            \"humidity\":\"${ruuviData?.humidity}\"\n" +
+                    "            \"airPressure\":${ruuviData?.airPressure},\n" +
+                    "            \"temperatue\":${ruuviData?.temperatue},\n" +
+                    "         },\n"
+        }
+        return str + "    }"
     }
 }

@@ -50,14 +50,16 @@ class SettingsActivity : AppCompatActivity() {
     @BindView(R.id.logging_endpoint) lateinit var loggingEndpoint: TextView
     @BindView(R.id.device_name) lateinit var loggingDeviceName: TextView
     @BindView(R.id.logging_frequency) lateinit var loggingFrequency: TextView
+    @BindView(R.id.logging_real_distance) lateinit var loggingRealDistance: TextView
+    @BindView(R.id.logging_point) lateinit var loggingPoint: TextView
 
     @BindView(R.id.version) lateinit var version: TextView
 
-    @BindViews(R.id.logging_endpoint_title, R.id.device_name_title, R.id.logging_frequency_title)
+    @BindViews(R.id.logging_endpoint_title, R.id.device_name_title, R.id.logging_frequency_title, R.id.logging_real_distance_title)
     lateinit var loggingTitles: List<@JvmSuppressWildcards TextView>
-    @BindViews(R.id.logging_endpoint, R.id.device_name, R.id.logging_frequency)
+    @BindViews(R.id.logging_endpoint, R.id.device_name, R.id.logging_frequency, R.id.logging_real_distance)
     lateinit var loggingSubtitles: List<@JvmSuppressWildcards TextView>
-    @BindViews(R.id.logging_endpoint_container, R.id.device_name_container, R.id.logging_frequency_container)
+    @BindViews(R.id.logging_endpoint_container, R.id.device_name_container, R.id.logging_frequency_container, R.id.logging_real_distance_container)
     lateinit var loggingContainers: List<@JvmSuppressWildcards LinearLayout>
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -77,6 +79,8 @@ class SettingsActivity : AppCompatActivity() {
         loggingEndpoint.text = prefs.loggingEndpoint ?: getString(R.string.not_defined)
         loggingDeviceName.text = prefs.loggingDeviceName ?: getString(R.string.not_defined)
         loggingFrequency.text = prefs.getLoggingFrequencyName()
+        loggingRealDistance.text = prefs.getLoggingRealDistanceName()
+        loggingPoint.text = prefs.getLoggingPointName()
 
         handleLoggingState(prefs.isLoggingEnabled)
 
@@ -144,11 +148,10 @@ class SettingsActivity : AppCompatActivity() {
         MaterialDialog.Builder(this)
                 .theme(Theme.LIGHT)
                 .title(R.string.logging_endpoint)
-                .inputRangeRes(7, -1, R.color.colorPauseFab)
+                .inputRangeRes(0, -1, R.color.colorPauseFab)
                 .inputType(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI)
-                .input(getString(R.string.logging_endpoint), prefs.loggingEndpoint ?: "http://example.com/logging", { dialog, input ->
+                .input(getString(R.string.logging_endpoint), prefs.loggingEndpoint ?: "Device local file log", { dialog, input ->
                     var endpoint = input.toString()
-
                     if (endpoint.isNotEmpty()) {
                         // If we just entered the IP address or 'example.com' for example
                         if (!endpoint.startsWith("http")) {
@@ -156,13 +159,13 @@ class SettingsActivity : AppCompatActivity() {
                         }
 
                         Log.d(TAG, "endpoint: $endpoint - valid : " + Patterns.WEB_URL.matcher(endpoint).matches())
-
-                        if (Patterns.WEB_URL.matcher(endpoint).matches()) { // The URL is a valid endpoint
-                            dialog.getActionButton(DialogAction.POSITIVE).isEnabled = true
-                            return@input
-                        }
                     }
-                    dialog.getActionButton(DialogAction.POSITIVE).isEnabled = false
+                    if(endpoint.isEmpty() or
+                            (endpoint.isNotEmpty() && Patterns.WEB_URL.matcher(endpoint).matches())) { // The URL is a valid endpoint
+                        dialog.getActionButton(DialogAction.POSITIVE).isEnabled = true
+                        return@input
+                    }
+                    //Allow empty because it has local file log now !
                 })
                 .onPositive { dialog, _ ->
                     // From here the input should be valid
@@ -173,12 +176,12 @@ class SettingsActivity : AppCompatActivity() {
                         if (!newEndpoint.startsWith("http")) {
                             newEndpoint = "http://$newEndpoint"
                         }
-
-                        Log.d(TAG, "newEndpoint: " + newEndpoint)
-
-                        loggingEndpoint.text = newEndpoint
-                        prefs.loggingEndpoint = newEndpoint
+                    } else {
+                        newEndpoint = "Device local file log"
                     }
+                    Log.d(TAG, "newEndpoint: " + newEndpoint)
+                    loggingEndpoint.text = newEndpoint
+                    prefs.loggingEndpoint = newEndpoint
                 }
                 .negativeText(android.R.string.cancel)
                 .alwaysCallInputCallback()
@@ -221,6 +224,38 @@ class SettingsActivity : AppCompatActivity() {
                 .show()
     }
 
+    @OnClick(R.id.logging_point_container)
+    fun onLoggingPointClicked() {
+        MaterialDialog.Builder(this)
+                .theme(Theme.LIGHT)
+                .title(R.string.logging_point)
+                .items(R.array.logging_points_names)
+                .itemsCallbackSingleChoice(prefs.getLoggingPointIdx()) { _, _, which, text ->
+                    Log.d(TAG, "$which - $text")
+                    prefs.setLoggingPointIdx(which)
+                    loggingPoint.text = prefs.getLoggingPointName()
+                    true
+                }
+                .positiveText(R.string.choose)
+                .show()
+    }
+
+    @OnClick(R.id.logging_real_distance_container)
+    fun onLoggingRealDistanceClicked() {
+        MaterialDialog.Builder(this)
+                .theme(Theme.LIGHT)
+                .title(R.string.logging_real_distance)
+                .items(R.array.logging_realdistance_names)
+                .itemsCallbackSingleChoice(prefs.getLoggingRealDistanceIdx()) { _, _, which, text ->
+                    Log.d(TAG, "$which - $text")
+                    prefs.setLoggingRealDistanceIdx(which)
+                    loggingRealDistance.text = prefs.getLoggingRealDistanceName()
+                    true
+                }
+                .positiveText(R.string.choose)
+                .show()
+    }
+
     @OnClick(R.id.blacklist)
     fun onBlackListClicked() {
         tracker.logEvent("blacklist_clicked")
@@ -243,7 +278,11 @@ class SettingsActivity : AppCompatActivity() {
 
     @OnClick(R.id.feature_request)
     fun onFeatureRequestClicked() {
-        startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/Bridouille/android-beacon-scanner")))
+        val emailIntent = Intent(Intent.ACTION_SENDTO, Uri.fromParts("mailto", BuildConfig.CONTACT_EMAIL, null))
+        emailIntent.putExtra(Intent.EXTRA_SUBJECT, "Feature request for BeaconScanner")
+        emailIntent.putExtra(Intent.EXTRA_TEXT, "")
+
+        startActivity(Intent.createChooser(emailIntent, getString(R.string.send_email)))
     }
 
     @OnClick(R.id.tutorial)
